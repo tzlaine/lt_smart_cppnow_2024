@@ -32,6 +32,188 @@ Zach Laine
 
 ----
 
+Why a talk about how smart I am?
+
+The community needs to appreciate how smart I am.
+<!-- .element: class="fragment" -->
+
+It's important.
+<!-- .element: class="fragment" -->
+
+----
+
+Why a lightning talk then?
+
+That's all the time we'll need.
+<!-- .element: class="fragment" -->
+
+----
+
+The Evidence:
+
+- Glasses
+<!-- .element: class="fragment" -->
+- Very wrinkly brain
+<!-- .element: class="fragment" -->
+- I will convince you of a non-intuitive result
+<!-- .element: class="fragment" -->
+
+----
+
+All types should be regular...
+
+... by default.
+<!-- .element: class="fragment" -->
+
+<!-- This is not the smart part yet.  Calm down. -->
+
+----
+
+The "by default" is really important.
+
+Think of `unique_ptr`!
+<!-- .element: class="fragment" -->
+
+----
+
+Let's look at a loop:
+
+```c++
+for (auto x : values) {
+  auto a = function_of(x);
+  if (a != x) // regular
+    use(a);
+}
+```
+
+----
+
+Now let's unroll it, doing two iterations per loop:
+
+----
+
+```c++
+for (auto [x, y] : pairs_of(values)) {
+  auto a = function_of(x);
+  if (a != x) // regular
+    use(a);
+  auto b = function_of(y);
+  if (b != y) // still regular
+    use(b);
+}
+```
+
+----
+
+Note that unrolling by 2x is arbitrary.  We could have unrolled by 3x, 4x, or
+whatever.
+
+----
+
+Given that, how often have you needed to know when `a == b` in a single loop
+iteration?  Does that even make sense?  Those two objects are only in scope
+due to an arbitrary unrolling.  In 1x "unrolling", they don't even exist at
+the same time!
+
+----
+
+`a` is still regular, and so are `b`, `x`, and `y`.
+
+----
+
+Regularity has nothing to do with comparing objects `a` and `b`.  They are not
+comparable, *not because they are non-regular*, but because *they do not exist
+at the same time*.  If they seem to be around because of loop unrolling, it is
+because we have lost the thread of what's really going on -- looping.
+
+----
+
+The arbitrariness of the unrolling factor is important.  If you unroll 2x,
+pairs of values exist at the same time.  For 4x, four values do.  So, when is
+it okay to compare values from iteration N and N+m?  This is difficult to
+reason about.  Regularity is all about making code easier to reason about.
+
+<!-- Smart?  Hmph!  Yeah. -->
+
+----
+
+```c++
+std::simd<double> s1 = { /* ... */ };
+std::simd<double> s2 = { /* ... */ };
+s1 *= s2;
+```
+
+----
+
+```c++
+for (int i = 0; i < num_elements(s1); ++i) {
+  auto & x = get_element(s1, i);
+  auto y = get_element(s2, i);
+  x *= y;
+}
+```
+
+----
+
+This is unrolled using an implementation-defined unrolling factor, which may
+or may not be the equal to the number of elements in `s1`.
+
+----
+
+This is why `std::simd` is not regular.  Comparing the nth element of `s1`
+with the nth element of `s2` makes sense, because they exist at the same time.
+
+----
+
+Using the results of those comparisons together at the same time makes no
+sense, because those results *do not* exist a the same time.  They just appear
+to, because of the unrolling inherent in `std::simd`.
+
+----
+
+Making `std::simd` regular would be doing a reduction on the results of the
+elementwise comparison operations.  Those are each fine, but using them in a
+combined operation makes no sense.
+
+----
+
+<!-- Genius?  Well, ok, I guess so.
+
+For the video, someone just said "that's briliant; you're a genius".
+
+It may be hard to hear on the recording.
+
+If you heard someone saying "no one said that", "that's an empty chair", *bad
+audio*. -->
+
+Three final things.
+
+----
+
+I'm being a jackass on purpose.
+
+<!-- Note that I made myself the butt of the joke.  That was super-gracious of
+me.  If I made someone else the butt of the joke, what kind of graceless ass
+would that make me? -->
+
+----
+
+Rigorous argument is important.
+
+<!-- There are many ways to make your case.
+
+Hopefully you agree that I didn't use any fallacious arguments; I try not to.
+
+One of the most common fallacies is ad hominem -- attacking the person making
+an argument, in an attempt to weaken their argument.
+
+If I had done so, I would have weakened my argument, not strengthened it,
+perhaps to the point of invalidity.
+
+Keep that in mind for the next, oh, ... exactly five minutes. -->
+
+----
+
             </script>
             </section>
         </div>
